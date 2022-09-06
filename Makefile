@@ -15,6 +15,7 @@ build:
 	docker-compose build
 
 frontend:
+	npm install
 	npm run watch
 
 websocket:
