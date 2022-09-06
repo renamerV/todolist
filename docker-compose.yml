@@ -1,0 +1,47 @@
+version: "3.9"
+services:
+    app:
+        build:
+            args:
+                user: renamer
+                uid: 1000
+            context: ./
+            dockerfile: ./docker/php/Dockerfile
+        image: todolist
+        container_name: todolist-app
+        working_dir: /var/www/
+        volumes:
+            - ./:/var/www
+        networks:
+            - todolist
+
+    nginx:
+        image: nginx:alpine
+        container_name: todolist-nginx
+        ports:
+            - '${FORWARD_APP_PORT:-80}:80'
+        volumes:
+            - ./:/var/www
+            - ./docker/nginx:/etc/nginx/conf.d/
+        networks:
+            - todolist
+
+    db:
+        image: mysql:5.7
+        command: [ '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci','--default-authentication-plugin=mysql_native_password' ]
+        restart: always
+        tty: true
+        ports:
+            - '${FORWARD_DB_PORT:-3306}:3306'
+        environment:
+            MYSQL_ROOT_PASSWORD: 'root'
+        volumes:
+            - dbdata:/var/lib/mysql
+
+volumes:
+    dbdata:
+        driver: local
+
+networks:
+    todolist:
+        driver: bridge
